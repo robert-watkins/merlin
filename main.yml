@@ -3,6 +3,14 @@
   become: yes
 
   tasks: 
+    - name: Create User Merlin locally
+      local_action:
+        module: user
+        name: merlin
+        state: present
+        expires: -1
+        generate_ssh_key: yes
+
     - name: Create User Merlin
       user:
         name: merlin
@@ -31,4 +39,5 @@
         state: present
         key: "{{ lookup('file', '/home/merlin/.ssh/id_rsa.pub') }}"
       become_user: merlin
+
 
