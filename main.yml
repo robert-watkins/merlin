@@ -1,0 +1,42 @@
+---
+- hosts: all
+  become: yes
+
+  tasks: 
+    - name: Create User Merlin locally
+      local_action:
+        module: user
+        name: merlin
+        state: present
+        expires: -1
+        generate_ssh_key: yes
+
+    - name: Create User Merlin
+      user:
+        name: merlin
+        state: present
+        shell: /bin/bash
+        expires: -1
+        group: wheel
+    
+    - name: Add Merlin to sudoers with passwordless
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%# %wheel        ALL=(ALL)       NOPASSWD: ALL'
+        insertafter: '^%# %wheel        ALL=(ALL)       NOPASSWD: ALL'
+        line: 'merlin  ALL=(ALL)       NOPASSWD: ALL'
+
+    - name: Create ansible tmp directory
+      file: 
+        path: /home/merlin/.ansible/tmp
+        state: directory
+        mode: '0700'
+
+    - name: Add keys to remote host
+      authorized_key: 
+        user: merlin
+        state: present
+        key: "{{ lookup('file', '/home/merlin/.ssh/id_rsa.pub') }}"
+      become_user: merlin
+
